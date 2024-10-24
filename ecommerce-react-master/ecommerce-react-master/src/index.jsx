@@ -1,7 +1,7 @@
 import { Preloader } from '@/components/common';
 import 'normalize.css/normalize.css';
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom'; // Fixed: Changed ReactDom to ReactDOM
 import 'react-phone-input-2/lib/style.css';
 import { onAuthStateFail, onAuthStateSuccess } from '@/redux/actions/authActions';
 import configureStore from '@/redux/store/store';
@@ -20,7 +20,7 @@ const { store, persistor } = configureStore();
 const root = document.getElementById('app');
 
 // Render the preloader on initial load
-render(<Preloader />, root);
+ReactDOM.render(<Preloader />, root); // Fixed: Changed render to ReactDOM.render()
 
 firebase.auth.onAuthStateChanged((user) => {
   if (user) {
@@ -29,7 +29,7 @@ firebase.auth.onAuthStateChanged((user) => {
     store.dispatch(onAuthStateFail('Failed to authenticate'));
   }
   // then render the app after checking the auth state
-  render(<App store={store} persistor={persistor} />, root);
+  ReactDOM.render(<App store={store} persistor={persistor} />, root); // Fixed: Changed render to ReactDOM.render()
 });
 
 if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
