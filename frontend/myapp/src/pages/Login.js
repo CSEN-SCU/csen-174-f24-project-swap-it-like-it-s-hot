@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import { auth, provider, signInWithPopup } from '../firebaseConfig';
+import useAuth from '../hooks/useAuth'; // Import the useAuth hook
 
 function Login() {
   const navigate = useNavigate();
+  const { isAuthenticated, idToken } = useAuth(); // Get the authentication state and ID token
 
   const handleLogin = () => {
     signInWithPopup(auth, provider)
@@ -20,6 +22,25 @@ function Login() {
       .catch((error) => {
         console.error("Login Error: ", error);
       });
+  };
+
+  // Handle sending the Firebase ID token with requests to your Flask backend
+  const fetchData = async () => {
+    if (isAuthenticated && idToken) {
+      try {
+        const response = await fetch('http://localhost:5000/my-listings', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${idToken}`, // Include Firebase ID token in Authorization header
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        console.log('My Listings:', data);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      }
+    }
   };
 
   return (

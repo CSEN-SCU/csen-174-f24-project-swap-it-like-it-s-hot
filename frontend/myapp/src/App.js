@@ -8,6 +8,7 @@ import Navbar from './components/Navbar/Navbar';
 import AddBook from './pages/AddBook';
 import useAuth from './hooks/useAuth'; // Import the custom hook to get auth status
 import './App.css';
+import MyListings from './pages/MyListings';
 
 function App() {
   const [searchResults, setSearchResults] = useState([]);  // State for storing search results
@@ -59,6 +60,11 @@ function AppContent({ searchResults, setSearchResults }) {
         <Route
           path="/books/:id"
           element={isAuthenticated ? <BookDetail /> : <Navigate to="/" />}
+        />
+
+        <Route
+          path="/my-listings"
+          element={isAuthenticated ? <MyListings /> : <Navigate to="/" />}
         />
       </Routes>
     </div>
