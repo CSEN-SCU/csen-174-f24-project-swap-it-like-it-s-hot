@@ -130,6 +130,52 @@ def adding_to_wishlist():
         print(f"Error adding to wishlist: {e}")
         return jsonify({'error': 'Failed to add to wishlist'}), 500
     
+@app.route('/delete_listing/<listing_id>', methods=['DELETE'])
+def delete_listing(listing_id):
+    print(f"Attempting to delete listing with ID: {listing_id}")  # Debugging line
+
+    try:
+        # Verify the user's Firebase ID token
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({'error': 'Authorization header is missing'}), 401
+
+        token = auth_header.split(" ")[1]
+        decoded_token = firebase_auth.verify_id_token(token)
+        user_id = decoded_token['uid']
+
+        # Fetch the listing from Firestore
+        doc_ref = db.collection('listings').document(listing_id)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            print("Listing not found in Firestore.")  # Debugging line
+            return jsonify({'error': 'Listing not found'}), 404
+
+        listing_data = doc.to_dict()
+        book_id = listing_data.get('Book_ID')
+        user_id = listing_data.get('User_ID')
+
+        # Check if the listing belongs to the current user
+        if user_id != request.auth.uid:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        # Delete the listing from Firestore
+        doc_ref.delete()
+        print(f"Successfully deleted listing with ID: {listing_id}")
+        
+        book_ref = db.collection('books').document(book_id)
+        book_ref.delete()
+        print(f"Successfully deleted book with ID: {book_id}")
+        
+        return jsonify({'message': 'Listing deleted successfully'}), 200
+    
+
+    except Exception as e:
+        print("Error during delete operation:", str(e))
+        return jsonify({'error': 'Internal server error'}), 500
+    
+
 # Remove from wishlist function
 @app.route('/remove_from_wishlist', methods=['POST'])
 def removing_from_wishlist():

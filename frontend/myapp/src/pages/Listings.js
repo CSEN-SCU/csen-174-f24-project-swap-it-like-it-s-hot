@@ -7,6 +7,42 @@ function Listings() {
     const [listings, setListings] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const handleEdit = (book) => {
+        console.log("Editing book:", book);
+        // Add your edit functionality here, e.g., navigate to an edit page
+    };
+
+    const handleDelete = async (book) => {
+        try {
+            const currentUser = auth.currentUser;
+    
+            if (!currentUser) {
+                console.error("User not logged in");
+                return;
+            }
+    
+            const token = await currentUser.getIdToken();
+    
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/delete_listing/${book.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+    
+            if (response.ok) {
+                // Remove the deleted book from the listings
+                setListings((prevListings) => prevListings.filter((item) => item.id !== book.id));
+                console.log("Book deleted successfully");
+            } else {
+                console.error("Failed to delete book:", await response.text());
+            }
+        } catch (error) {
+            console.error("Error deleting book:", error);
+        }
+    };
+
     useEffect(() => {
         const fetchListings = async () => {
             try {
@@ -54,7 +90,13 @@ function Listings() {
             <div className="listings-grid">
                 {listings.length > 0 ? (
                     listings.map((book, index) => (
-                        <BookTile book={book} key={index} />
+                        <BookTile
+                            book={book}
+                            key={index}
+                            showMenu={true}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
                     ))
                 ) : (
                     <p>No items added yet. Start adding books!</p>
