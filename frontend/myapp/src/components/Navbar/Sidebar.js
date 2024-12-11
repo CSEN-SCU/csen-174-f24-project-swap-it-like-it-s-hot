@@ -47,7 +47,7 @@ function Sidebar({ setCategory, sortOption, setSortOption, categories, clearFilt
             {isCoursesVisible && ( // Conditionally render the courses section
                 <div className="collapsed-courses">
                     <div className="category-list">
-                        {categories.map((category) => (
+                        { Array.isArray(categories) && categories.map((category) => (
                             <label key={category} className={`category-item ${selectedCategory === category ? 'selected' : ''}`}>
                                 <input
                                     type="radio"

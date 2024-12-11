@@ -61,8 +61,21 @@ def get_books():
         books = sorted(books, key=lambda x: float(x.get('price', 0)))
     elif sort_option == 'high_to_low':
         books = sorted(books, key=lambda x: float(x.get('price', 0)), reverse=True)
+        
+    #pagination
+    page = int(request.args.get('page', 1))  # Default to page 1
+    limit = int(request.args.get('limit', 10))  # Default to 10 items per page
+    start_index = (page - 1) * limit
+    end_index = start_index + limit
 
-    return jsonify(books)
+    paginated_books = books[start_index:end_index]
+
+    return jsonify({
+        'books': paginated_books,
+        'total': len(books),
+        'page': page,
+        'pages': -(-len(books) // limit)    
+    })
 
 @app.route('/course_numbers', methods=['GET'])
 def get_course_numbers():
@@ -73,14 +86,17 @@ def get_course_numbers():
         books = books_ref.stream()
 
         # Extract unique course numbers
-        course_numbers = ()
+        course_numbers = set()
         for doc in books:
             book_data = doc.to_dict()
+            print("book data fetched:", book_data)
             course_num = book_data.get('course_num')
             if course_num:
                 course_numbers.add(course_num)
         # Return the list of unique course numbers
-        return jsonify(list(course_numbers))
+        response = list(course_numbers)
+        print("fetched course numbers:", response)
+        return jsonify(response)
     except Exception as e: 
         print(f"Error in get_course_numbers: {e}")
         return jsonify({'error': 'Failed to fetch course numbers'}), 500
@@ -372,7 +388,7 @@ def search_books():
                 print(f"Invalid ISBN: {isbn}")
 
         # Combine results and remove duplicates based on book ID
-        unique_results = {book['id']: book for book in results}.values()
+        unique_results = list({book['id']: book for book in results}.values())
 
         return jsonify(list(unique_results))
 
